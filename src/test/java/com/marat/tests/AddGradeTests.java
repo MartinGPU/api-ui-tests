@@ -1,15 +1,11 @@
 package com.marat.tests;
 
-import com.codeborne.selenide.BearerTokenCredentials;
-import com.codeborne.selenide.Condition;
+import io.restassured.RestAssured;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.Cookie;
 
-import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.open;
-import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static io.qameta.allure.Allure.step;
-import static io.restassured.RestAssured.*;
+import static io.restassured.RestAssured.given;
 
 public class AddGradeTests extends TestBase {
 
@@ -17,9 +13,9 @@ public class AddGradeTests extends TestBase {
     public void getCookie() {
 
         step("Get cookie by api and set it to browser", () -> {
-            String authorizationCookie =
+            String authorizationToken =
                     given()
-                            .contentType("application/x-www-form-urlencoded; charset=UTF-8")
+                            .contentType("application/x-www-form-urlencoded")
                             .formParam("grant_type", grant)
                             .formParam("username", login)
                             .formParam("password", password)
@@ -27,22 +23,40 @@ public class AddGradeTests extends TestBase {
                             .when()
                             .post(uri)
                             .then()
+                            .log().all()
                             .statusCode(200)
                             .extract()
-                            .cookie("refresh_token");
+                            .response().jsonPath().getString("access_token");
+            System.out.println(authorizationToken);
 
-            step("Open minimal content and set cookie", () ->
-                    open("/assets/images/loader-icon.webp"));
+            RestAssured
+                    .given()
+                    .log().all()
+                    .when()
+                    .contentType("application/json")
+                    .header("Authorization", "Bearer" + " " + authorizationToken)
+                    .get("https://educont.ru/api/v1/profile/detail")
+                    .then()
+                    .statusCode(200)
+                    .body("login", Matchers.equalTo("hkogifjotlbo@knowledgemd.com"))
+                    .extract().response().jsonPath().prettyPrint();
 
-            step("Set cookie to to browser", () ->
-                    getWebDriver().manage().addCookie(
-                            new Cookie("refresh_token", authorizationCookie)));
 
-            step("Open profile page", () ->
-                    open("/profile"));
-
-            step("checking children exist", () ->
-                    $("[data-test-id='child-name']")).shouldHave(Condition.text("Кириченко Иван Семенович"));
+//            step("Open minimal content and set cookie", () ->
+//                    open("/assets/sprite.svg"));
+//
+//            step("Set cookie to browser", () ->
+//                    getWebDriver()
+//
+//            step("Open profile page", () ->
+//                    open(url));
+//
+//            step("checking children exist", () ->
+//                    $$(".user__contact__text").get(1).shouldHave(Condition.text("hkogifjotlbo@knowledgemd.com")));
         });
+        }
     }
-}
+
+
+
+
