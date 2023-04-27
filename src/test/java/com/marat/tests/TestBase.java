@@ -7,22 +7,18 @@ import org.aeonbits.owner.ConfigFactory;
 import org.junit.jupiter.api.BeforeAll;
 
 public class TestBase {
-    public static CredentialsConfig credentials = ConfigFactory.create(CredentialsConfig.class, System.getProperties());
 
+    public static CredentialsConfig credentials = ConfigFactory.create(CredentialsConfig.class, System.getProperties());
     public static String
             login,
             password,
-            grant,
-            role,
             url,
             uri;
 
     @BeforeAll
     public static void beforeAll() {
-        grant = credentials.grant_type();
-        login = credentials.username();
-        password = credentials.password();
-        role = credentials.role();
+        login = credentials.Email();
+        password = credentials.Password();
         url = credentials.webUrl();
         uri = credentials.apiUrl();
 
